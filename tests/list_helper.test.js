@@ -89,18 +89,18 @@ describe('Favorite Blog', () => {
 	test('when list has only one blog, Return itself', () => {
 		const result = listHelper.favoriteBlog([blogs[0]]);
 		const favoriteBlog = {
-			title: blogs[0].title,
-			author: blogs[0].author,
-			likes: blogs[0].likes,
+			title: "React patterns",
+			author: "Michael Chan",
+			likes: 7,
 		};
 		assert.deepStrictEqual(result, favoriteBlog);
 	});
 	test('of a bigger list of blogs', () => {
 		const result = listHelper.favoriteBlog(blogs);
 		const favoriteBlog = {
-			title: blogs[2].title,
-			author: blogs[2].author,
-			likes: blogs[2].likes,
+			title: "Canonical string reduction",
+			author: "Edsger W. Dijkstra",
+			likes: 12,
 		};
 		assert.deepStrictEqual(result, favoriteBlog);
 	});
