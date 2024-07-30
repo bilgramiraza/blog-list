@@ -7,6 +7,26 @@ const totalLikes = (blogs) => {
 	return total;
 };
 
+const favoriteBlog = (blogs) => {
+	let favorite = {
+		title: '',
+		author: '',
+		likes: 0,
+	};
+
+	if (!blogs.length) return favorite;
+
+	blogs.forEach(blog => {
+		if (blog.likes > favorite.likes)
+			favorite = {
+				title: blog.title,
+				author: blog.author,
+				likes: blog.likes,
+			};
+	});
+	return favorite;
+};
+
 module.exports = {
-	dummy, totalLikes
+	dummy, totalLikes, favoriteBlog
 };
