@@ -50,6 +50,43 @@ test('The First Blog is Titled \'test\'', async () => {
 	assert(titles.includes('test'));
 });
 
+test('A Valid Blog is Added', async () => {
+	const newBlog = {
+		title: 'newTest',
+		author: 'newTester',
+		url: 'newTester.com',
+		likes: 69,
+	};
+
+	await api
+		.post('/api/blogs/')
+		.send(newBlog)
+		.expect(201)
+		.expect('Content-Type', /application\/json/);
+
+	const response = await api.get('/api/blogs');
+
+	const titles = response.body.map(e => e.title);
+
+	assert.strictEqual(response.body.length, initialBlogs.length + 1);
+	assert(titles.includes('newTest'));
+});
+
+test('Invalid Blog Won\'t be added', async () => {
+	const newBlog = {
+		likes: 69,
+	};
+
+	await api
+		.post('/api/blogs/')
+		.send(newBlog)
+		.expect(400);
+
+	const response = await api.get('/api/blogs');
+
+	assert.strictEqual(response.body.length, initialBlogs.length);
+});
+
 after(async () => {
 	await mongoose.connection.close();
 });
