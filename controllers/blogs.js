@@ -11,13 +11,19 @@ blogsRouter.get('/', async (_request, response, next) => {
 });
 
 blogsRouter.post('/', async (request, response, next) => {
-	const body = request.body;
+	const { title, author, url, likes } = request.body;
+
+	if (!title || !author || !url || !likes) {
+		return response.status(400).json({
+			error: 'Data Missing'
+		});
+	}
 
 	const newBlog = new Blog({
-		title: body.title,
-		author: body.author,
-		url: body.url,
-		likes: body.likes,
+		title,
+		author,
+		url,
+		likes,
 	});
 
 	try {
