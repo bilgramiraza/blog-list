@@ -9,7 +9,7 @@ blogsRouter.get('/', async (_request, response) => {
 blogsRouter.post('/', async (request, response) => {
 	const { title, author, url, likes } = request.body;
 
-	if (!title || !author || !url || !likes) {
+	if (!title || !author || !url) {
 		return response.status(400).json({
 			error: 'Data Missing'
 		});
@@ -19,7 +19,7 @@ blogsRouter.post('/', async (request, response) => {
 		title,
 		author,
 		url,
-		likes,
+		likes: likes || 0,
 	});
 
 	const savedBlog = await newBlog.save();

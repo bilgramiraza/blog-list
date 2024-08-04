@@ -86,6 +86,26 @@ describe('API Write Operations', () => {
 		const blogs = await helper.blogsInDB();
 		assert.strictEqual(blogs.length, helper.initialBlogs.length);
 	});
+
+	test('If Likes is Missing in New Blog, Defaults it to Zero', async () => {
+		const newBlog = {
+			title: 'newTest',
+			author: 'newTester',
+			url: 'newTester.com',
+		};
+
+		await api
+			.post('/api/blogs/')
+			.send(newBlog)
+			.expect(201)
+			.expect('Content-Type', /application\/json/);
+
+		const blogs = await helper.blogsInDB();
+		assert.strictEqual(blogs.length, helper.initialBlogs.length + 1);
+
+		const newBlogFromDB = blogs.find(blog => blog.title === newBlog.title);
+		assert.strictEqual(newBlogFromDB.likes, 0);
+	});
 });
 
 describe('API Delete Operations', () => {
