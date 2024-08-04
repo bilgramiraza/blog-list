@@ -159,6 +159,117 @@ describe('API Tests when there are some notes saved', () => {
 				.expect(400);
 		});
 	});
+
+	describe('API Update Operations', () => {
+		test('An Existing Blog\'s Title Can be Updated', async () => {
+			const blogsAtStart = await helper.blogsInDB();
+			const updateBlog = {
+				...blogsAtStart[0],
+				title: 'Modified blog',
+			};
+
+			await api
+				.put(`/api/blogs/${updateBlog.id}`)
+				.send(updateBlog)
+				.expect(200);
+
+			const blogsAtEnd = await helper.blogsInDB();
+			const updatedBlog = blogsAtEnd.find(blog => blog.title === updateBlog.title);
+			assert.deepStrictEqual(updateBlog, updatedBlog);
+		});
+
+		test('An Existing Blog\'s Author Can be Updated', async () => {
+			const blogsAtStart = await helper.blogsInDB();
+			const updateBlog = {
+				...blogsAtStart[0],
+				author: 'Modified Author',
+			};
+
+			await api
+				.put(`/api/blogs/${updateBlog.id}`)
+				.send(updateBlog)
+				.expect(200);
+
+			const blogsAtEnd = await helper.blogsInDB();
+			const updatedBlog = blogsAtEnd.find(blog => blog.title === updateBlog.title);
+			assert.deepStrictEqual(updateBlog, updatedBlog);
+		});
+
+
+		test('An Existing Blog\'s URL Can be Updated', async () => {
+			const blogsAtStart = await helper.blogsInDB();
+			const updateBlog = {
+				...blogsAtStart[0],
+				url: 'ModifiedURL.com',
+			};
+
+			await api
+				.put(`/api/blogs/${updateBlog.id}`)
+				.send(updateBlog)
+				.expect(200);
+
+			const blogsAtEnd = await helper.blogsInDB();
+			const updatedBlog = blogsAtEnd.find(blog => blog.title === updateBlog.title);
+			assert.deepStrictEqual(updateBlog, updatedBlog);
+		});
+
+		test('An Existing Blog\'s Likes Can be Updated', async () => {
+			const blogsAtStart = await helper.blogsInDB();
+			const updateBlog = {
+				...blogsAtStart[0],
+				likes: 69,
+			};
+
+			await api
+				.put(`/api/blogs/${updateBlog.id}`)
+				.send(updateBlog)
+				.expect(200);
+
+			const blogsAtEnd = await helper.blogsInDB();
+			const updatedBlog = blogsAtEnd.find(blog => blog.title === updateBlog.title);
+			assert.deepStrictEqual(updateBlog, updatedBlog);
+		});
+
+		test('An Existing Blog Can\'t be Updated if Provided Data is Invalid', async () => {
+			const blogsAtStart = await helper.blogsInDB();
+			const updateBlog = {
+				id: blogsAtStart[0].id,
+				title: 'Modified blog',
+				url: 'modifiedUrl.com',
+				likes: 69,
+			};
+
+			await api
+				.put(`/api/blogs/${updateBlog.id}`)
+				.send(updateBlog)
+				.expect(400);
+		});
+
+		test('Trying to Update Non Existing Blog Returns status code 404', async () => {
+			const validNonExistingId = await helper.nonExistingId();
+			const blogsAtStart = await helper.blogsInDB();
+			const updateBlog = {
+				...blogsAtStart[0],
+			};
+
+			await api
+				.put(`/api/blogs/${validNonExistingId}`)
+				.send(updateBlog)
+				.expect(404);
+		});
+
+		test('Trying to Update Blog w/ Invalid Id Returns status code 400', async () => {
+			const invalidId = 'invalidId';
+			const blogsAtStart = await helper.blogsInDB();
+			const updateBlog = {
+				...blogsAtStart[0],
+			};
+			await api
+				.put(`/api/blogs/${invalidId}`)
+				.send(updateBlog)
+				.expect(400);
+		});
+	});
 });
 
 after(async () => {
