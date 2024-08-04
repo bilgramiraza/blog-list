@@ -139,6 +139,25 @@ describe('API Tests when there are some notes saved', () => {
 			const idsAtEnd = blogsAtEnd.map(blog => blog.id);
 			assert(!idsAtEnd.includes(blogToDelete.id));
 		});
+
+		test('An non Existing Blog\'s Id returns 204 with Nothing Deleted', async () => {
+			const validNonExistingId = await helper.nonExistingId();
+
+			await api
+				.delete(`/api/blogs/${validNonExistingId}`)
+				.expect(204);
+
+			const blogsAtEnd = await helper.blogsInDB();
+			assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length);
+		});
+
+		test('An Invalid Id being Deleted returns 400', async () => {
+			const invalidId = 'invalidId';
+
+			await api
+				.delete(`/api/blogs/${invalidId}`)
+				.expect(400);
+		});
 	});
 });
 
