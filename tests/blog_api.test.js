@@ -36,6 +36,19 @@ describe('API Read Operations', () => {
 		const titles = response.body.map(e => e.title);
 		assert(titles.includes('test'));
 	});
+
+	test('A Specific Blog can be Viewed by its ID', async () => {
+		const blogsAtStart = await helper.blogsInDB();
+
+		const blogToView = blogsAtStart[0];
+
+		const fetchedBlog = await api
+			.get(`/api/blogs/${blogToView.id}`)
+			.expect(200)
+			.expect('Content-Type', /application\/json/);
+
+		assert.deepStrictEqual(fetchedBlog.body, blogToView);
+	});
 });
 
 describe('API Write Operations', () => {
