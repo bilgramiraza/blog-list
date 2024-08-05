@@ -310,8 +310,8 @@ describe('API Tests when there is One User saved', () => {
 		const usersAtStart = await helper.usersInDB();
 
 		const newUser = {
-			username: 'raza',
-			name: 'Raza Hussain',
+			username: 'root',
+			name: 'Rooted',
 			password: 'passwor',
 		};
 
@@ -329,5 +329,6 @@ describe('API Tests when there is One User saved', () => {
 });
 
 after(async () => {
+	User.deleteMany({});
 	await mongoose.connection.close();
 });
