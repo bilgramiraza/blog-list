@@ -5,15 +5,22 @@ const supertest = require('supertest');
 const app = require('../app');
 const Blog = require('../models/blog');
 const User = require('../models/user');
-const helper = require('./test_helper');
 const bcrypt = require('bcrypt');
+const helper = require('./test_helper');
 
 const api = supertest(app);
 
 describe('API Tests when there are some notes saved', () => {
 	beforeEach(async () => {
 		await Blog.deleteMany({});
+		await User.deleteMany({});
+
 		await Blog.insertMany(helper.initialBlogs);
+
+		const passwordHash = await bcrypt.hash('secret', 10);
+		const user = new User({ username: 'root', name: 'root', passwordHash });
+
+		await user.save();
 	});
 
 	describe('API Read Operations', () => {
@@ -69,7 +76,7 @@ describe('API Tests when there are some notes saved', () => {
 		});
 	});
 
-	describe('API Write Operations', () => {
+	describe('API Write Operations', async () => {
 		test('A Valid Blog is Added', async () => {
 			const newBlog = {
 				title: 'newTest',
@@ -78,9 +85,16 @@ describe('API Tests when there are some notes saved', () => {
 				likes: 69,
 			};
 
+			const response = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' })
+				.expect(200)
+				.expect('Content-Type', /application\/json/);
+
 			await api
 				.post('/api/blogs/')
 				.send(newBlog)
+				.set('Authorization', `Bearer ${response.body.token}`)
 				.expect(201)
 				.expect('Content-Type', /application\/json/);
 
@@ -96,9 +110,16 @@ describe('API Tests when there are some notes saved', () => {
 				likes: 69,
 			};
 
+			const response = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' })
+				.expect(200)
+				.expect('Content-Type', /application\/json/);
+
 			await api
 				.post('/api/blogs/')
 				.send(newBlog)
+				.set('Authorization', `Bearer ${response.body.token}`)
 				.expect(400);
 
 			const blogs = await helper.blogsInDB();
@@ -112,9 +133,16 @@ describe('API Tests when there are some notes saved', () => {
 				url: 'newTester.com',
 			};
 
+			const response = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' })
+				.expect(200)
+				.expect('Content-Type', /application\/json/);
+
 			await api
 				.post('/api/blogs/')
 				.send(newBlog)
+				.set('Authorization', `Bearer ${response.body.token}`)
 				.expect(201)
 				.expect('Content-Type', /application\/json/);
 
@@ -274,76 +302,6 @@ describe('API Tests when there are some notes saved', () => {
 	});
 });
 
-describe('API Tests when there is One User saved', () => {
-	beforeEach(async () => {
-		await User.deleteMany({});
-
-		const passwordHash = await bcrypt.hash('secret', 10);
-		const user = new User({ username: 'root', name: 'root', passwordHash });
-
-		await user.save();
-	});
-
-	describe('API Write Operations', () => {
-		test('Allows creation of new valid user', async () => {
-			const usersAtStart = await helper.usersInDB();
-
-			const newUser = {
-				username: 'raza',
-				name: 'Raza Hassan',
-				password: 'assword',
-			};
-
-			await api
-				.post('/api/users')
-				.send(newUser)
-				.expect(201)
-				.expect('Content-Type', /application\/json/);
-
-			const usersAtEnd = await helper.usersInDB();
-			assert.strictEqual(usersAtEnd.length, usersAtStart.length + 1);
-
-			const usernames = usersAtEnd.map(user => user.username);
-			assert(usernames.includes(newUser.username));
-		});
-
-		test('Blocks creation of new user with Duplicate Username', async () => {
-			const usersAtStart = await helper.usersInDB();
-
-			const newUser = {
-				username: 'root',
-				name: 'Rooted',
-				password: 'passwor',
-			};
-
-			const result = await api
-				.post('/api/users')
-				.send(newUser)
-				.expect(400)
-				.expect('Content-Type', /application\/json/);
-
-			assert(result.body.error.includes('expected `username` to be unique'));
-
-			const usersAtEnd = await helper.usersInDB();
-			assert.strictEqual(usersAtEnd.length, usersAtStart.length);
-		});
-	});
-	describe('API Read Operations', () => {
-		test('Fetch All Users', async () => {
-			const usersAtStart = await helper.usersInDB();
-
-			const results = await api
-				.get('/api/users')
-				.expect(200)
-				.expect('Content-Type', /application\/json/);
-
-			assert.strictEqual(usersAtStart.length, results.body.length);
-			assert.deepStrictEqual(usersAtStart, results.body);
-		});
-	});
-});
-
 after(async () => {
-	User.deleteMany({});
 	await mongoose.connection.close();
 });
