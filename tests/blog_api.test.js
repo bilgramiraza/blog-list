@@ -105,6 +105,75 @@ describe('API Tests when there are some notes saved', () => {
 			assert(titles.includes('newTest'));
 		});
 
+		test('Blogs Missing \'Title\' Won\'t be added and returns Status code 400', async () => {
+			const newBlog = {
+				author: 'newTester',
+				url: 'newTester.com',
+				likes: 69,
+			};
+
+			const response = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' })
+				.expect(200)
+				.expect('Content-Type', /application\/json/);
+
+			await api
+				.post('/api/blogs/')
+				.send(newBlog)
+				.set('Authorization', `Bearer ${response.body.token}`)
+				.expect(400);
+
+			const blogs = await helper.blogsInDB();
+			assert.strictEqual(blogs.length, helper.initialBlogs.length);
+		});
+
+		test('Blogs Missing \'Author\' Won\'t be added and returns Status code 400', async () => {
+			const newBlog = {
+				title: 'newTest',
+				url: 'newTester.com',
+				likes: 69,
+			};
+
+			const response = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' })
+				.expect(200)
+				.expect('Content-Type', /application\/json/);
+
+			await api
+				.post('/api/blogs/')
+				.send(newBlog)
+				.set('Authorization', `Bearer ${response.body.token}`)
+				.expect(400);
+
+			const blogs = await helper.blogsInDB();
+			assert.strictEqual(blogs.length, helper.initialBlogs.length);
+		});
+
+		test('Blogs Missing \'URL\' Won\'t be added and returns Status code 400', async () => {
+			const newBlog = {
+				title: 'newTest',
+				author: 'newTester',
+				likes: 69,
+			};
+
+			const response = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' })
+				.expect(200)
+				.expect('Content-Type', /application\/json/);
+
+			await api
+				.post('/api/blogs/')
+				.send(newBlog)
+				.set('Authorization', `Bearer ${response.body.token}`)
+				.expect(400);
+
+			const blogs = await helper.blogsInDB();
+			assert.strictEqual(blogs.length, helper.initialBlogs.length);
+		});
+
 		test('If Likes is Missing in New Blog, Defaults it to Zero', async () => {
 			const newBlog = {
 				title: 'newTest',
@@ -130,27 +199,6 @@ describe('API Tests when there are some notes saved', () => {
 
 			const newBlogFromDB = blogs.find(blog => blog.title === newBlog.title);
 			assert.strictEqual(newBlogFromDB.likes, 0);
-		});
-
-		test('Invalid Blog Won\'t be added and returns Status code 400', async () => {
-			const newBlog = {
-				likes: 69,
-			};
-
-			const response = await api
-				.post('/api/login')
-				.send({ username: 'root', password: 'secret' })
-				.expect(200)
-				.expect('Content-Type', /application\/json/);
-
-			await api
-				.post('/api/blogs/')
-				.send(newBlog)
-				.set('Authorization', `Bearer ${response.body.token}`)
-				.expect(400);
-
-			const blogs = await helper.blogsInDB();
-			assert.strictEqual(blogs.length, helper.initialBlogs.length);
 		});
 
 		test('Valid Blog Won\'t be added if User Token Is Missing and returns Status code 401', async () => {
