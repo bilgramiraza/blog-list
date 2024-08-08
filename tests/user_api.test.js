@@ -62,7 +62,38 @@ describe('API Tests when there is One User saved', () => {
 			const usersAtEnd = await helper.usersInDB();
 			assert.strictEqual(usersAtEnd.length, usersAtStart.length);
 		});
+
+		test('Blocks creation of new user with Invalid Username', async () => {
+			const newUser = {
+				username: 'ra',
+				name: 'Roz',
+				password: 'passwor',
+			};
+
+			const result = await api
+				.post('/api/users')
+				.send(newUser)
+				.expect(400);
+
+			assert(result.body.error.includes('Username too short(Min 3)'));
+		});
+
+		test('Blocks creation of new user with Invalid Password', async () => {
+			const newUser = {
+				username: 'raza',
+				name: 'Raza',
+				password: 'pa',
+			};
+
+			const result = await api
+				.post('/api/users')
+				.send(newUser)
+				.expect(400);
+
+			assert(result.body.error.includes('Password too short(Min 3)'));
+		});
 	});
+
 	describe('API Read Operations', () => {
 		test('Fetch All Users', async () => {
 			const usersAtStart = await helper.usersInDB();
