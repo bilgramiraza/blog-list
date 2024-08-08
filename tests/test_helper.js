@@ -16,6 +16,10 @@ const initialBlogs = [
 	},
 ];
 
+const getInitialBlogs = userId => {
+	return initialBlogs.map(blog => ({ ...blog, user: userId }));
+};
+
 const nonExistingId = async () => {
 
 	const blog = new Blog(
@@ -44,6 +48,7 @@ const usersInDB = async () => {
 
 module.exports = {
 	initialBlogs,
+	getInitialBlogs,
 	nonExistingId,
 	blogsInDB,
 	usersInDB,
