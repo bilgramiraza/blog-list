@@ -10,17 +10,17 @@ const helper = require('./test_helper');
 
 const api = supertest(app);
 
-describe('API Tests when there are some notes saved', () => {
+describe.only('API Tests when there are some notes saved', () => {
 	beforeEach(async () => {
 		await Blog.deleteMany({});
 		await User.deleteMany({});
-
-		await Blog.insertMany(helper.initialBlogs);
 
 		const passwordHash = await bcrypt.hash('secret', 10);
 		const user = new User({ username: 'root', name: 'root', passwordHash });
 
 		await user.save();
+
+		await Blog.insertMany(helper.getInitialBlogs(user._id));
 	});
 
 	describe('API Read Operations', () => {
@@ -224,8 +224,15 @@ describe('API Tests when there are some notes saved', () => {
 			const blogsAtStart = await helper.blogsInDB();
 			const blogToDelete = blogsAtStart[0];
 
+			const response = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' })
+				.expect(200)
+				.expect('Content-Type', /application\/json/);
+
 			await api
 				.delete(`/api/blogs/${blogToDelete.id}`)
+				.set('Authorization', `Bearer ${response.body.token}`)
 				.expect(204);
 
 			const blogsAtEnd = await helper.blogsInDB();
@@ -238,8 +245,15 @@ describe('API Tests when there are some notes saved', () => {
 		test('An non Existing Blog\'s Id returns 204 with Nothing Deleted', async () => {
 			const validNonExistingId = await helper.nonExistingId();
 
+			const response = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' })
+				.expect(200)
+				.expect('Content-Type', /application\/json/);
+
 			await api
 				.delete(`/api/blogs/${validNonExistingId}`)
+				.set('Authorization', `Bearer ${response.body.token}`)
 				.expect(204);
 
 			const blogsAtEnd = await helper.blogsInDB();
@@ -249,8 +263,15 @@ describe('API Tests when there are some notes saved', () => {
 		test('An Invalid Id being Deleted returns 400', async () => {
 			const invalidId = 'invalidId';
 
+			const response = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' })
+				.expect(200)
+				.expect('Content-Type', /application\/json/);
+
 			await api
 				.delete(`/api/blogs/${invalidId}`)
+				.set('Authorization', `Bearer ${response.body.token}`)
 				.expect(400);
 		});
 	});
