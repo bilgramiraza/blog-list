@@ -76,7 +76,7 @@ describe.only('API Tests when there are some notes saved', () => {
 		});
 	});
 
-	describe('API Write Operations', async () => {
+	describe.only('API Write Operations', async () => {
 		test('A Valid Blog is Added', async () => {
 			const newBlog = {
 				title: 'newTest',
@@ -85,16 +85,14 @@ describe.only('API Tests when there are some notes saved', () => {
 				likes: 69,
 			};
 
-			const response = await api
+			const { body: { token } } = await api
 				.post('/api/login')
-				.send({ username: 'root', password: 'secret' })
-				.expect(200)
-				.expect('Content-Type', /application\/json/);
+				.send({ username: 'root', password: 'secret' });
 
 			await api
 				.post('/api/blogs/')
 				.send(newBlog)
-				.set('Authorization', `Bearer ${response.body.token}`)
+				.set('Authorization', `Bearer ${token}`)
 				.expect(201)
 				.expect('Content-Type', /application\/json/);
 
@@ -105,6 +103,31 @@ describe.only('API Tests when there are some notes saved', () => {
 			assert(titles.includes('newTest'));
 		});
 
+		test.only('A Valid Blog is Added and Its User is Set based on the Token provided', async () => {
+			const newBlog = {
+				title: 'newTest',
+				author: 'newTester',
+				url: 'newTester.com',
+				likes: 69,
+			};
+
+			const { body: { token } } = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' });
+
+			const response = await api
+				.post('/api/blogs/')
+				.send(newBlog)
+				.set('Authorization', `Bearer ${token}`)
+				.expect(201)
+				.expect('Content-Type', /application\/json/);
+
+			const users = await helper.usersInDB();
+			const rootUser = users[0];
+
+			assert(response.body.user, rootUser.id);
+		});
+
 		test('Blogs Missing \'Title\' Won\'t be added and returns Status code 400', async () => {
 			const newBlog = {
 				author: 'newTester',
@@ -112,16 +135,14 @@ describe.only('API Tests when there are some notes saved', () => {
 				likes: 69,
 			};
 
-			const response = await api
+			const { body: { token } } = await api
 				.post('/api/login')
-				.send({ username: 'root', password: 'secret' })
-				.expect(200)
-				.expect('Content-Type', /application\/json/);
+				.send({ username: 'root', password: 'secret' });
 
 			await api
 				.post('/api/blogs/')
 				.send(newBlog)
-				.set('Authorization', `Bearer ${response.body.token}`)
+				.set('Authorization', `Bearer ${token}`)
 				.expect(400);
 
 			const blogs = await helper.blogsInDB();
@@ -135,16 +156,14 @@ describe.only('API Tests when there are some notes saved', () => {
 				likes: 69,
 			};
 
-			const response = await api
+			const { body: { token } } = await api
 				.post('/api/login')
-				.send({ username: 'root', password: 'secret' })
-				.expect(200)
-				.expect('Content-Type', /application\/json/);
+				.send({ username: 'root', password: 'secret' });
 
 			await api
 				.post('/api/blogs/')
 				.send(newBlog)
-				.set('Authorization', `Bearer ${response.body.token}`)
+				.set('Authorization', `Bearer ${token}`)
 				.expect(400);
 
 			const blogs = await helper.blogsInDB();
@@ -158,16 +177,14 @@ describe.only('API Tests when there are some notes saved', () => {
 				likes: 69,
 			};
 
-			const response = await api
+			const { body: { token } } = await api
 				.post('/api/login')
-				.send({ username: 'root', password: 'secret' })
-				.expect(200)
-				.expect('Content-Type', /application\/json/);
+				.send({ username: 'root', password: 'secret' });
 
 			await api
 				.post('/api/blogs/')
 				.send(newBlog)
-				.set('Authorization', `Bearer ${response.body.token}`)
+				.set('Authorization', `Bearer ${token}`)
 				.expect(400);
 
 			const blogs = await helper.blogsInDB();
@@ -181,16 +198,14 @@ describe.only('API Tests when there are some notes saved', () => {
 				url: 'newTester.com',
 			};
 
-			const response = await api
+			const { body: { token } } = await api
 				.post('/api/login')
-				.send({ username: 'root', password: 'secret' })
-				.expect(200)
-				.expect('Content-Type', /application\/json/);
+				.send({ username: 'root', password: 'secret' });
 
 			await api
 				.post('/api/blogs/')
 				.send(newBlog)
-				.set('Authorization', `Bearer ${response.body.token}`)
+				.set('Authorization', `Bearer ${token}`)
 				.expect(201)
 				.expect('Content-Type', /application\/json/);
 
@@ -224,15 +239,13 @@ describe.only('API Tests when there are some notes saved', () => {
 			const blogsAtStart = await helper.blogsInDB();
 			const blogToDelete = blogsAtStart[0];
 
-			const response = await api
+			const { body: { token } } = await api
 				.post('/api/login')
-				.send({ username: 'root', password: 'secret' })
-				.expect(200)
-				.expect('Content-Type', /application\/json/);
+				.send({ username: 'root', password: 'secret' });
 
 			await api
 				.delete(`/api/blogs/${blogToDelete.id}`)
-				.set('Authorization', `Bearer ${response.body.token}`)
+				.set('Authorization', `Bearer ${token}`)
 				.expect(204);
 
 			const blogsAtEnd = await helper.blogsInDB();
@@ -242,18 +255,28 @@ describe.only('API Tests when there are some notes saved', () => {
 			assert(!idsAtEnd.includes(blogToDelete.id));
 		});
 
+		test('A Blog Deletion Request without JWT Token Doesn\'t Delete the Blog and Returns Status 401', async () => {
+			const blogsAtStart = await helper.blogsInDB();
+			const blogToDelete = blogsAtStart[0];
+
+			await api
+				.delete(`/api/blogs/${blogToDelete.id}`)
+				.expect(401);
+
+			const blogsAtEnd = await helper.blogsInDB();
+			assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length);
+		});
+
 		test('An non Existing Blog\'s Id returns 204 with Nothing Deleted', async () => {
 			const validNonExistingId = await helper.nonExistingId();
 
-			const response = await api
+			const { body: { token } } = await api
 				.post('/api/login')
-				.send({ username: 'root', password: 'secret' })
-				.expect(200)
-				.expect('Content-Type', /application\/json/);
+				.send({ username: 'root', password: 'secret' });
 
 			await api
 				.delete(`/api/blogs/${validNonExistingId}`)
-				.set('Authorization', `Bearer ${response.body.token}`)
+				.set('Authorization', `Bearer ${token}`)
 				.expect(204);
 
 			const blogsAtEnd = await helper.blogsInDB();
@@ -263,15 +286,13 @@ describe.only('API Tests when there are some notes saved', () => {
 		test('An Invalid Id being Deleted returns 400', async () => {
 			const invalidId = 'invalidId';
 
-			const response = await api
+			const { body: { token } } = await api
 				.post('/api/login')
-				.send({ username: 'root', password: 'secret' })
-				.expect(200)
-				.expect('Content-Type', /application\/json/);
+				.send({ username: 'root', password: 'secret' });
 
 			await api
 				.delete(`/api/blogs/${invalidId}`)
-				.set('Authorization', `Bearer ${response.body.token}`)
+				.set('Authorization', `Bearer ${token}`)
 				.expect(400);
 		});
 	});
