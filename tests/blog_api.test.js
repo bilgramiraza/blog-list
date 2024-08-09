@@ -10,7 +10,7 @@ const helper = require('./test_helper');
 
 const api = supertest(app);
 
-describe.only('API Tests when there are some notes saved', () => {
+describe('API Tests when there are some notes saved', () => {
 	beforeEach(async () => {
 		await Blog.deleteMany({});
 		await User.deleteMany({});
@@ -76,7 +76,7 @@ describe.only('API Tests when there are some notes saved', () => {
 		});
 	});
 
-	describe.only('API Write Operations', async () => {
+	describe('API Write Operations', async () => {
 		test('A Valid Blog is Added', async () => {
 			const newBlog = {
 				title: 'newTest',
@@ -103,7 +103,7 @@ describe.only('API Tests when there are some notes saved', () => {
 			assert(titles.includes('newTest'));
 		});
 
-		test.only('A Valid Blog is Added and Its User is Set based on the Token provided', async () => {
+		test('A Valid Blog is Added and Its User is Set based on the Token provided', async () => {
 			const newBlog = {
 				title: 'newTest',
 				author: 'newTester',
@@ -235,7 +235,7 @@ describe.only('API Tests when there are some notes saved', () => {
 	});
 
 	describe('API Delete Operations', () => {
-		test('A Blog Can be Deleted', async () => {
+		test('A Blog Can be Deleted w/ Valid and matching JWT Token Provided', async () => {
 			const blogsAtStart = await helper.blogsInDB();
 			const blogToDelete = blogsAtStart[0];
 
@@ -261,6 +261,19 @@ describe.only('API Tests when there are some notes saved', () => {
 
 			await api
 				.delete(`/api/blogs/${blogToDelete.id}`)
+				.expect(401);
+
+			const blogsAtEnd = await helper.blogsInDB();
+			assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length);
+		});
+
+		test('A Blog Deletion Request w/ Invalid JWT Token Doesn\'t Delete the Blog and Returns Status 401', async () => {
+			const blogsAtStart = await helper.blogsInDB();
+			const blogToDelete = blogsAtStart[0];
+
+			await api
+				.delete(`/api/blogs/${blogToDelete.id}`)
+				.set('Authorization', "Bearer InvalidToken")
 				.expect(401);
 
 			const blogsAtEnd = await helper.blogsInDB();
