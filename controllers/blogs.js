@@ -67,12 +67,23 @@ blogsRouter.delete('/:id', middleware.userExtractor, async (request, response) =
 	response.status(204).end();
 });
 
-blogsRouter.put('/:id', async (request, response) => {
+blogsRouter.put('/:id', middleware.userExtractor, async (request, response) => {
 	const blogId = request.params.id;
 	const modifiedBlog = request.body;
 
 	if (!modifiedBlog.title || !modifiedBlog.author || !modifiedBlog.url || !modifiedBlog.likes) {
 		return response.status(400).end();
+	}
+
+	const blog = await Blog.findById(blogId);
+	const user = request.user;
+
+	if (!blog) {
+		return response.status(404).end();
+	}
+
+	if (blog.user.toString() !== user.id) {
+		return response.status(401).json({ error: 'Unauthorized Access' });
 	}
 
 	const updateOptions = {
@@ -82,10 +93,6 @@ blogsRouter.put('/:id', async (request, response) => {
 	};
 
 	const updatedBlog = await Blog.findByIdAndUpdate(blogId, modifiedBlog, updateOptions);
-
-	if (!updatedBlog) {
-		return response.status(404).end();
-	}
 
 	response.status(200).json(updatedBlog);
 });

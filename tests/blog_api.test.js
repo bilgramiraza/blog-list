@@ -311,15 +311,20 @@ describe('API Tests when there are some notes saved', () => {
 	});
 
 	describe('API Update Operations', () => {
-		test('An Existing Blog\'s Title Can be Updated', async () => {
+		test('An Existing Blog\'s Title Can be Updated by its User', async () => {
 			const blogsAtStart = await helper.blogsInDB();
 			const updateBlog = {
 				...blogsAtStart[0],
 				title: 'Modified blog',
 			};
 
+			const { body: { token } } = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' });
+
 			await api
 				.put(`/api/blogs/${updateBlog.id}`)
+				.set('Authorization', `Bearer ${token}`)
 				.send(updateBlog)
 				.expect(200);
 
@@ -328,15 +333,20 @@ describe('API Tests when there are some notes saved', () => {
 			assert.deepStrictEqual(updateBlog, updatedBlog);
 		});
 
-		test('An Existing Blog\'s Author Can be Updated', async () => {
+		test('An Existing Blog\'s Author Can be Updated by its User', async () => {
 			const blogsAtStart = await helper.blogsInDB();
 			const updateBlog = {
 				...blogsAtStart[0],
 				author: 'Modified Author',
 			};
 
+			const { body: { token } } = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' });
+
 			await api
 				.put(`/api/blogs/${updateBlog.id}`)
+				.set('Authorization', `Bearer ${token}`)
 				.send(updateBlog)
 				.expect(200);
 
@@ -346,15 +356,20 @@ describe('API Tests when there are some notes saved', () => {
 		});
 
 
-		test('An Existing Blog\'s URL Can be Updated', async () => {
+		test('An Existing Blog\'s URL Can be Updated by its User', async () => {
 			const blogsAtStart = await helper.blogsInDB();
 			const updateBlog = {
 				...blogsAtStart[0],
 				url: 'ModifiedURL.com',
 			};
 
+			const { body: { token } } = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' });
+
 			await api
 				.put(`/api/blogs/${updateBlog.id}`)
+				.set('Authorization', `Bearer ${token}`)
 				.send(updateBlog)
 				.expect(200);
 
@@ -363,15 +378,20 @@ describe('API Tests when there are some notes saved', () => {
 			assert.deepStrictEqual(updateBlog, updatedBlog);
 		});
 
-		test('An Existing Blog\'s Likes Can be Updated', async () => {
+		test('An Existing Blog\'s Likes Can be Updated by its User', async () => {
 			const blogsAtStart = await helper.blogsInDB();
 			const updateBlog = {
 				...blogsAtStart[0],
 				likes: 69,
 			};
 
+			const { body: { token } } = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' });
+
 			await api
 				.put(`/api/blogs/${updateBlog.id}`)
+				.set('Authorization', `Bearer ${token}`)
 				.send(updateBlog)
 				.expect(200);
 
@@ -389,10 +409,48 @@ describe('API Tests when there are some notes saved', () => {
 				likes: 69,
 			};
 
+			const { body: { token } } = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' });
+
+			await api
+				.put(`/api/blogs/${updateBlog.id}`)
+				.set('Authorization', `Bearer ${token}`)
+				.send(updateBlog)
+				.expect(400);
+		});
+
+		test('An Existing Blog Can\'t be Updated if JWT Token isn\'t Provided Returning status code 401', async () => {
+			const blogsAtStart = await helper.blogsInDB();
+			const updateBlog = {
+				id: blogsAtStart[0].id,
+				title: 'Modified blog',
+				author: 'Modified Author',
+				url: 'modifiedUrl.com',
+				likes: 69,
+			};
+
 			await api
 				.put(`/api/blogs/${updateBlog.id}`)
 				.send(updateBlog)
-				.expect(400);
+				.expect(401);
+		});
+
+		test('An Existing Blog Can\'t be Updated if JWT Token Provided is Invalid Returning status code 401', async () => {
+			const blogsAtStart = await helper.blogsInDB();
+			const updateBlog = {
+				id: blogsAtStart[0].id,
+				title: 'Modified blog',
+				author: 'Modified Author',
+				url: 'modifiedUrl.com',
+				likes: 69,
+			};
+
+			await api
+				.put(`/api/blogs/${updateBlog.id}`)
+				.set('Authorization', 'Bearer InvalidToken')
+				.send(updateBlog)
+				.expect(401);
 		});
 
 		test('Trying to Update Non Existing Blog Returns status code 404', async () => {
@@ -400,10 +458,16 @@ describe('API Tests when there are some notes saved', () => {
 			const blogsAtStart = await helper.blogsInDB();
 			const updateBlog = {
 				...blogsAtStart[0],
+				likes: 69,
 			};
+
+			const { body: { token } } = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' });
 
 			await api
 				.put(`/api/blogs/${validNonExistingId}`)
+				.set('Authorization', `Bearer ${token}`)
 				.send(updateBlog)
 				.expect(404);
 		});
@@ -413,9 +477,16 @@ describe('API Tests when there are some notes saved', () => {
 			const blogsAtStart = await helper.blogsInDB();
 			const updateBlog = {
 				...blogsAtStart[0],
+				likes: 69,
 			};
+
+			const { body: { token } } = await api
+				.post('/api/login')
+				.send({ username: 'root', password: 'secret' });
+
 			await api
 				.put(`/api/blogs/${invalidId}`)
+				.set('Authorization', `Bearer ${token}`)
 				.send(updateBlog)
 				.expect(400);
 		});
