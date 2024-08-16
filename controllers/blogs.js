@@ -5,6 +5,7 @@ const middleware = require('../utils/middleware');
 blogsRouter.get('/', async (_request, response) => {
 	const blogs = await Blog
 		.find({})
+		.lean()
 		.populate('user', { username: 1, name: 1 });
 
 	response.json(blogs)
@@ -38,7 +39,9 @@ blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
 
 blogsRouter.get('/:id', async (request, response) => {
 	const blogId = request.params.id;
-	const blog = await Blog.findById(blogId);
+	const blog = await Blog.findById(blogId)
+		.lean()
+		.populate('user', { username: 1, name: 1 });
 
 	if (blog) {
 		response.json(blog)
@@ -90,7 +93,37 @@ blogsRouter.put('/:id', middleware.userExtractor, async (request, response) => {
 		context: 'query',
 	};
 
-	const updatedBlog = await Blog.findByIdAndUpdate(blogId, modifiedBlog, updateOptions);
+	const updatedBlog = await Blog.findByIdAndUpdate(blogId, modifiedBlog, updateOptions)
+		.lean()
+		.populate('user', { username: 1, name: 1 });
+
+	response.status(200).json(updatedBlog);
+});
+
+blogsRouter.put('/:id/like', async (request, response) => {
+	const blogId = request.params.id;
+	const modifiedBlog = request.body;
+
+	if (!modifiedBlog.title || !modifiedBlog.author || !modifiedBlog.url || !modifiedBlog.likes) {
+		return response.status(400).end();
+	}
+
+	const blog = await Blog.findById(blogId);
+
+	if (!blog) {
+		return response.status(404).end();
+	}
+
+	const updateOptions = {
+		new: true,
+		runValidators: true,
+		context: 'query',
+	};
+
+	const updatedBlog = await Blog.findByIdAndUpdate(blogId, modifiedBlog, updateOptions)
+		.lean()
+		.populate('user', { username: 1, name: 1 });
+	console.log(updatedBlog);
 
 	response.status(200).json(updatedBlog);
 });
