@@ -123,7 +123,6 @@ blogsRouter.put('/:id/like', async (request, response) => {
 	const updatedBlog = await Blog.findByIdAndUpdate(blogId, modifiedBlog, updateOptions)
 		.lean()
 		.populate('user', { username: 1, name: 1 });
-	console.log(updatedBlog);
 
 	response.status(200).json(updatedBlog);
 });
