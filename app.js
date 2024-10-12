@@ -1,6 +1,6 @@
-const express = require('express')
-const app = express()
-const cors = require('cors')
+const express = require('express');
+const app = express();
+const cors = require('cors');
 const config = require('./utils/config');
 require('express-async-errors');
 const blogsRouter = require('./controllers/blogs');
@@ -11,8 +11,8 @@ const mongoose = require('mongoose');
 
 mongoose.connect(config.MONGODB_URI);
 
-app.use(cors())
-app.use(express.json())
+app.use(cors());
+app.use(express.json());
 
 app.use(middleware.tokenExtractor);
 
@@ -21,8 +21,8 @@ app.use('/api/users', usersRouter);
 app.use('/api/login', loginRouter);
 
 if (process.env.NODE_ENV === 'test') {
-	const testingRouter = require('./controllers/testing');
-	app.use('/api/testing', testingRouter);
+  const testingRouter = require('./controllers/testing');
+  app.use('/api/testing', testingRouter);
 }
 
 app.use(middleware.unknownEndpoint);

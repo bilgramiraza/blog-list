@@ -3,130 +3,125 @@ const Blog = require('../models/blog');
 const middleware = require('../utils/middleware');
 
 blogsRouter.get('/', async (_request, response) => {
-	const blogs = await Blog
-		.find({})
-		.lean()
-		.populate('user', { username: 1, name: 1 });
+  const blogs = await Blog.find({}).lean().populate('user', { username: 1, name: 1 });
 
-	response.json(blogs)
+  response.json(blogs);
 });
 
 blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
-	const { title, author, url, likes } = request.body;
+  const { title, author, url, likes } = request.body;
 
-	if (!title || !author || !url) {
-		return response.status(400).json({
-			error: 'Data Missing'
-		});
-	}
+  if (!title || !author || !url) {
+    return response.status(400).json({
+      error: 'Data Missing'
+    });
+  }
 
-	const user = request.user;
+  const user = request.user;
 
-	const newBlog = new Blog({
-		title,
-		author,
-		url,
-		likes: likes || 0,
-		user: user.id,
-	});
+  const newBlog = new Blog({
+    title,
+    author,
+    url,
+    likes: likes || 0,
+    user: user.id
+  });
 
-	const savedBlog = await newBlog.save();
-	user.blogs = user.blogs.concat(savedBlog._id);
-	await user.save();
+  const savedBlog = await newBlog.save();
+  user.blogs = user.blogs.concat(savedBlog._id);
+  await user.save();
 
-	const populatedBlog = await savedBlog.populate('user', { username: 1, name: 1 });
+  const populatedBlog = await savedBlog.populate('user', { username: 1, name: 1 });
 
-	response.status(201).json(populatedBlog.toObject());
+  response.status(201).json(populatedBlog.toObject());
 });
 
 blogsRouter.get('/:id', async (request, response) => {
-	const blogId = request.params.id;
-	const blog = await Blog.findById(blogId)
-		.lean()
-		.populate('user', { username: 1, name: 1 });
+  const blogId = request.params.id;
+  const blog = await Blog.findById(blogId).lean().populate('user', { username: 1, name: 1 });
 
-	if (blog) {
-		response.json(blog)
-	} else {
-		response.status(404).end();
-	}
+  if (blog) {
+    response.json(blog);
+  } else {
+    response.status(404).end();
+  }
 });
 
 blogsRouter.delete('/:id', middleware.userExtractor, async (request, response) => {
-	const blogId = request.params.id;
+  const blogId = request.params.id;
 
-	const user = request.user;
-	const blog = await Blog.findById(blogId);
+  const user = request.user;
+  const blog = await Blog.findById(blogId);
 
-	if (!blog) {
-		response.status(204).end();
-	}
+  if (!blog) {
+    response.status(204).end();
+  }
 
-	if (blog.user.toString() !== user.id) {
-		return response.status(401).json({ error: 'Unauthorized Access' });
-	}
+  if (blog.user.toString() !== user.id) {
+    return response.status(401).json({ error: 'Unauthorized Access' });
+  }
 
-	await Blog.findByIdAndDelete(blogId);
-	response.status(204).end();
+  await Blog.findByIdAndDelete(blogId);
+  response.status(204).end();
 });
 
 blogsRouter.put('/:id', middleware.userExtractor, async (request, response) => {
-	const blogId = request.params.id;
-	const modifiedBlog = request.body;
+  const blogId = request.params.id;
+  const modifiedBlog = request.body;
 
-	if (!modifiedBlog.title || !modifiedBlog.author || !modifiedBlog.url || !modifiedBlog.likes) {
-		return response.status(400).end();
-	}
+  if (!modifiedBlog.title || !modifiedBlog.author || !modifiedBlog.url || !modifiedBlog.likes) {
+    return response.status(400).end();
+  }
 
-	const blog = await Blog.findById(blogId);
-	const user = request.user;
+  const blog = await Blog.findById(blogId);
+  const user = request.user;
 
-	if (!blog) {
-		return response.status(404).end();
-	}
+  if (!blog) {
+    return response.status(404).end();
+  }
 
-	if (blog.user.toString() !== user.id) {
-		return response.status(401).json({ error: 'Unauthorized Access' });
-	}
+  if (blog.user.toString() !== user.id) {
+    return response.status(401).json({ error: 'Unauthorized Access' });
+  }
 
-	const updateOptions = {
-		new: true,
-		runValidators: true,
-		context: 'query',
-	};
+  const updateOptions = {
+    new: true,
+    runValidators: true,
+    context: 'query'
+  };
 
-	const updatedBlog = await Blog.findByIdAndUpdate(blogId, modifiedBlog, updateOptions)
-		.lean()
-		.populate('user', { username: 1, name: 1 });
+  const updatedBlog = await Blog.findByIdAndUpdate(blogId, modifiedBlog, updateOptions)
+    .lean()
+    .populate('user', { username: 1, name: 1 });
 
-	response.status(200).json(updatedBlog);
+  response.status(200).json(updatedBlog);
 });
 
 blogsRouter.put('/:id/like', async (request, response) => {
-	const blogId = request.params.id;
-	const modifiedBlog = request.body;
+  const blogId = request.params.id;
+  const modifiedBlog = request.body;
 
-	if (!modifiedBlog.title || !modifiedBlog.author || !modifiedBlog.url || !modifiedBlog.likes) {
-		return response.status(400).end();
-	}
+  if (!modifiedBlog.title || !modifiedBlog.author || !modifiedBlog.url || !modifiedBlog.likes) {
+    return response.status(400).end();
+  }
 
-	const blog = await Blog.findById(blogId);
+  const blog = await Blog.findById(blogId);
 
-	if (!blog) {
-		return response.status(404).end();
-	}
+  if (!blog) {
+    return response.status(404).end();
+  }
 
-	const updateOptions = {
-		new: true,
-		runValidators: true,
-		context: 'query',
-	};
+  const updateOptions = {
+    new: true,
+    runValidators: true,
+    context: 'query'
+  };
 
-	const updatedBlog = await Blog.findByIdAndUpdate(blogId, modifiedBlog, updateOptions)
-		.lean()
-		.populate('user', { username: 1, name: 1 });
+  const updatedBlog = await Blog.findByIdAndUpdate(blogId, modifiedBlog, updateOptions)
+    .lean()
+    .populate('user', { username: 1, name: 1 });
 
-	response.status(200).json(updatedBlog);
+  response.status(200).json(updatedBlog);
 });
 
 module.exports = blogsRouter;
