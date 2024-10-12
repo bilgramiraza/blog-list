@@ -8,7 +8,8 @@
     "dev": "NODE_ENV=development nodemon index.js",
     "test": "NODE_ENV=test node --test",
     "test-only": "NODE_ENV=test node --test --test-only",
-    "test-all": "NODE_ENV=test node --test --test-concurrency=1"
+    "test-all": "NODE_ENV=test node --test --test-concurrency=1",
+    "start:test": "NODE_ENV=test node index.js"
   },
   "author": "",
   "license": "MIT",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.4",
+    "prettier": "^3.3.3",
     "supertest": "^7.0.0"
   }
 }
