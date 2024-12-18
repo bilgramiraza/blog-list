@@ -23,8 +23,19 @@ usersRouter.post('/', async (request, response) => {
   response.status(201).json(savedUser);
 });
 
+// Returns All Users w/ the number of blogs under each
+// Moved to use 'Aggregate' rather than a transformation using 'map'
+// since 'Aggregate' is more scalable
 usersRouter.get('/', async (_request, response) => {
-  const users = await User.find({}).populate('blogs', { title: 1, author: 1, url: 1, likes: 1 });
+  const users = await User.aggregate([
+    {
+      $project: {
+        _id: 1,
+        username: 1,
+        blogs: { $size: '$blogs' }
+      }
+    }
+  ]);
   response.json(users);
 });
 
