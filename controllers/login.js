@@ -6,6 +6,10 @@ const User = require('../models/user');
 loginRouter.post('/', async (request, response) => {
   const { username, password } = request.body;
 
+  if (!(username && password)) {
+    return response.status(401).json({ error: 'invalid username or password' });
+  }
+
   const user = await User.findOne({ username });
   const passwordCheck = user === null ? false : await bcrypt.compare(password, user.passwordHash);
 
