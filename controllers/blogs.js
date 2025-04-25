@@ -124,4 +124,34 @@ blogsRouter.put('/:id/like', async (request, response) => {
   response.status(200).json(updatedBlog);
 });
 
+blogsRouter.post('/:id/comments', async (request, response) => {
+  const blogId = request.params.id;
+  const { comment } = request.body;
+
+  if (!comment || !comment.length) {
+    return response.status(400).json({
+      error: 'Data Missing'
+    });
+  }
+
+  const blog = await Blog.findById(blogId);
+
+  if (!blog) {
+    return response.status(404).end();
+  }
+
+  blog.comments.push(comment);
+  const updateOptions = {
+    new: true,
+    runValidators: true,
+    context: 'query'
+  };
+
+  const updatedBlog = await Blog.findByIdAndUpdate(blogId, blog, updateOptions)
+    .lean()
+    .populate('user', { username: 1, name: 1 });
+
+  response.status(201).json(updatedBlog);
+});
+
 module.exports = blogsRouter;
